@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuestra Historia | 8 de Cada Mes ❤️</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@600;700&family=Great+Vibes&family=Poppins:ital,wght@0,300;0,400;0,600;0,700;1,300&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #060c1f;
+            --bg-card: rgba(13, 27, 62, 0.65);
+            --bg-card-border: rgba(72, 149, 239, 0.25);
+            --primary-blue: #3a86ff;
+            --cyan-glow: #00f5d4;
+            --soft-blue: #8ecae6;
+            --light-blue: #e0f2fe;
+            --accent-pink: #f72585;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-title: 'Great Vibes', cursive;
+            --font-sub: 'Dancing Script', cursive;
+            --font-body: 'Poppins', sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: var(--font-body);
+            overflow-x: hidden;
+            position: relative;
+            min-height: 100vh;
+        }
+
+        /* Canvas Particle Background */
+        #canvas-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Container Main */
+        .app-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- 1. OVERLAY DE BIENVENIDA Y SOBRE 3D --- */
+        #envelope-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, #0d1b3e 0%, #030712 100%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            transition: opacity 1.2s ease, visibility 1.2s ease;
+        }
+
+        #envelope-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .envelope-wrapper {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background: #1e293b;
+            border-radius: 8px;
+            box-shadow: 0 20px 40px rgba(0, 245, 212, 0.15), 0 0 30px rgba(58, 134, 255, 0.3);
+            cursor: pointer;
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+        }
+
+        .envelope-wrapper:hover {
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 0 25px 50px rgba(0, 245, 212, 0.25), 0 0 40px rgba(58, 134, 255, 0.5);
+        }
+
+        .envelope-flap {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid transparent;
+            border-right: 150px solid transparent;
+            border-top: 110px solid #2563eb;
+            transform-origin: top;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 3;
+        }
+
+        .envelope-wrapper.open .envelope-flap {
+            transform: rotateX(180deg);
+            z-index: 1;
+        }
+
+        .envelope-pocket {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            border-left: 150px solid #1e3a8a;
+            border-right: 150px solid #1e3a8a;
+            border-bottom: 110px solid #1d4ed8;
+            border-radius: 0 0 8px 8px;
+            z-index: 3;
+        }
+
+        .envelope-seal {
+            position: absolute;
+            top: 85px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #00f5d4, #3a86ff);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #030712;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+            z-index: 4;
+            transition: opacity 0.4s ease;
+        }
+
+        .letter-preview {
+            position: absolute;
+            bottom: 10px;
+            left: 15px;
+            right: 15px;
+            height: 160px;
+            background: #ffffff;
+            border-radius: 6px;
+            padding: 15px;
+            color: #0f172a;
+            text-align: center;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .envelope-wrapper.open .letter-preview {
+            transform: translateY(-100px);
+        }
+
+        .letter-preview h3 {
+            font-family: var(--font-sub);
+            font-size: 1.8rem;
+            color: #1e3a8a;
+            margin-bottom: 5px;
+        }
+
+        .letter-preview p {
+            font-size: 0.85rem;
+            color: #475569;
+        }
+
+        .click-hint {
+            margin-top: 40px;
+            font-size: 1.1rem;
+            color: var(--soft-blue);
+            letter-spacing: 1px;
+            animation: pulse 1.8s infinite;
+            text-shadow: 0 0 10px rgba(142, 202, 230, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.5; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.02); }
+        }
+
+        /* --- 2. REPRODUCTOR FLOTANTE --- */
+        .music-player-floating {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            background: rgba(10, 22, 53, 0.85);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(0, 245, 212, 0.3);
+            border-radius: 50px;
+            padding: 8px 18px 8px 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5), 0 0 15px rgba(0, 245, 212, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .play-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3a86ff, #00f5d4);
+            border: none;
+            color: #030712;
+            font-size: 1.1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 0 10px rgba(0, 245, 212, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .play-btn:hover {
+            transform: scale(1.08);
+        }
+
+        .song-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .song-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .song-artist {
+            font-size: 0.72rem;
+            color: var(--soft-blue);
+        }
+
+        /* Ondas de sonido animadas */
+        .sound-waves {
+            display: flex;
+            align-items: flex-end;
+            gap: 3px;
+            height: 18px;
+        }
+
+        .wave-bar {
+            width: 3px;
+            height: 4px;
+            background: var(--cyan-glow);
+            border-radius: 3px;
+            transition: height 0.2s ease;
+        }
+
+        .music-player-floating.playing .wave-bar:nth-child(1) { animation: wave 1.2s infinite ease-in-out; }
+        .music-player-floating.playing .wave-bar:nth-child(2) { animation: wave 0.8s infinite ease-in-out 0.2s; }
+        .music-player-floating.playing .wave-bar:nth-child(3) { animation: wave 1.0s infinite ease-in-out 0.4s; }
+        .music-player-floating.playing .wave-bar:nth-child(4) { animation: wave 0.9s infinite ease-in-out 0.1s; }
+
+        @keyframes wave {
+            0%, 100% { height: 4px; }
+            50% { height: 18px; }
+        }
+
+        /* --- COMPONENTES GLOBALES Y SECCIONES --- */
+        section {
+            margin-bottom: 60px;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--bg-card-border);
+            border-radius: 20px;
+            padding: 35px 25px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+            position: relative;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-header h2 {
+            font-family: var(--font-title);
+            font-size: 3.2rem;
+            background: linear-gradient(135deg, #8ecae6, #00f5d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .section-header p {
+            font-size: 0.95rem;
+            color: var(--soft-blue);
+        }
+
+        /* --- HEADER PRINCIPAL --- */
+        .main-header {
+            text-align: center;
+            padding: 50px 0 30px;
+        }
+
+        .main-header h1 {
+            font-family: var(--font-title);
+            font-size: 4.5rem;
+            background: linear-gradient(135deg, #e0f2fe, #3a86ff, #00f5d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px rgba(58, 134, 255, 0.4));
+        }
+
+        .main-header p {
+            font-family: var(--font-sub);
+            font-size: 1.8rem;
+            color: var(--soft-blue);
+        }
+
+        /* --- 3. CONTADOR DE ANIVERSARIO --- */
+        .anniversary-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 245, 212, 0.15);
+            border: 1px solid var(--cyan-glow);
+            color: var(--cyan-glow);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            margin-bottom: 25px;
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.2);
+        }
+
+        .timer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            gap: 15px;
+            max-width: 750px;
+            margin: 0 auto;
+        }
+
+        .timer-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(142, 202, 230, 0.2);
+            border-radius: 15px;
+            padding: 18px 10px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            transition: transform 0.3s ease;
+        }
+
+        .timer-card:hover {
+            transform: translateY(-50px);
+            border-color: var(--cyan-glow);
+        }
+
+        .timer-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            font-family: var(--font-body);
+            text-shadow: 0 0 10px rgba(0, 245, 212, 0.4);
+        }
+
+        .timer-label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 4px;
+        }
+
+        /* --- 4. SECCIÓN ESPECIAL: PELEAS POR BOBADAS --- */
+        .fights-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: center;
+        }
+
+        @media (max-width: 768px) {
+            .fights-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .fights-box {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(58, 134, 255, 0.2);
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+        }
+
+        .roulette-display {
+            min-height: 90px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: var(--light-blue);
+            font-weight: 500;
+            background: rgba(6, 12, 31, 0.8);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            border: 1px dashed var(--soft-blue);
+        }
+
+        .btn-action {
+            background: linear-gradient(135deg, #2563eb, #00f5d4);
+            color: #030712;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 245, 212, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .btn-action:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 22px rgba(0, 245, 212, 0.5);
+        }
+
+        .counter-badge {
+            font-size: 3rem;
+            font-weight: 700;
+            color: var(--cyan-glow);
+            text-shadow: 0 0 15px rgba(0, 245, 212, 0.4);
+            margin: 15px 0 5px;
+        }
+
+        /* --- 5. CARTA DE AMOR --- */
+        .letter-container {
+            background: rgba(8, 18, 41, 0.85);
+            border: 1px solid rgba(142, 202, 230, 0.2);
+            border-radius: 16px;
+            padding: 35px;
+            position: relative;
+            line-height: 1.8;
+            font-size: 1.05rem;
+            color: #cbd5e1;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .typewriter-text {
+            min-height: 180px;
+            white-space: pre-line;
+        }
+
+        /* --- 6. GALERÍA INTERACTIVA DE 10 FOTOS --- */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .polaroid-card {
+            background: #ffffff;
+            padding: 12px 12px 18px 12px;
+            border-radius: 8px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            transition: transform 0.4s ease, box-shadow 0.4s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .polaroid-card:hover {
+            transform: translateY(-8px) rotate(1deg) scale(1.03);
+            box-shadow: 0 20px 30px rgba(0, 245, 212, 0.25);
+            z-index: 5;
+        }
+
+        .polaroid-img-wrapper {
+            width: 100%;
+            height: 220px;
+            overflow: hidden;
+            border-radius: 4px;
+            background: #e2e8f0;
+        }
+
+        .polaroid-img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .polaroid-card:hover .polaroid-img-wrapper img {
+            transform: scale(1.08);
+        }
+
+        .polaroid-caption {
+            margin-top: 12px;
+            text-align: center;
+            font-family: var(--font-sub);
+            font-size: 1.15rem;
+            color: #0f172a;
+            line-height: 1.3;
+        }
+
+        /* LIGHTBOX */
+        .lightbox-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(3, 7, 18, 0.92);
+            backdrop-filter: blur(15px);
+            z-index: 99999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            padding: 20px;
+        }
+
+        .lightbox-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .lightbox-content {
+            position: relative;
+            max-width: 850px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .lightbox-img {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0, 245, 212, 0.3);
+            border: 2px solid rgba(0, 245, 212, 0.4);
+            object-fit: contain;
+        }
+
+        .lightbox-caption {
+            margin-top: 15px;
+            font-family: var(--font-sub);
+            font-size: 1.6rem;
+            color: var(--light-blue);
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: -45px;
+            right: 0;
+            color: #fff;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .lightbox-close:hover {
+            color: var(--cyan-glow);
+        }
+
+        .lightbox-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            border: none;
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: background 0.3s;
+        }
+
+        .lightbox-nav:hover {
+            background: var(--primary-blue);
+        }
+
+        .lightbox-prev { left: -60px; }
+        .lightbox-next { right: -60px; }
+
+        @media (max-width: 768px) {
+            .lightbox-prev { left: 5px; }
+            .lightbox-next { right: 5px; }
+        }
+
+        /* --- 7. CANDADO SECRETO --- */
+        .lock-box {
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .lock-input-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .lock-input {
+            width: 120px;
+            padding: 12px;
+            border-radius: 30px;
+            border: 2px solid var(--primary-blue);
+            background: rgba(15, 23, 42, 0.8);
+            color: #fff;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: 600;
+            outline: none;
+            box-shadow: 0 0 10px rgba(58, 134, 255, 0.2);
+        }
+
+        .lock-input:focus {
+            border-color: var(--cyan-glow);
+            box-shadow: 0 0 15px rgba(0, 245, 212, 0.5);
+        }
+
+        .secret-message {
+            display: none;
+            background: rgba(0, 245, 212, 0.1);
+            border: 1px solid var(--cyan-glow);
+            border-radius: 15px;
+            padding: 25px;
+            margin-top: 25px;
+            animation: fadeIn 0.8s ease forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .secret-message h3 {
+            font-family: var(--font-title);
+            font-size: 2.8rem;
+            color: var(--cyan-glow);
+            margin-bottom: 10px;
+        }
+
+        /* FOOTER */
+        footer {
+            text-align: center;
+            padding: 40px 0 60px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        footer i {
+            color: var(--cyan-glow);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Canvas de partículas animadas -->
+    <canvas id="canvas-bg"></canvas>
+
+    <!-- 1. PORTADA CON SOBRE INTERACTIVO -->
+    <div id="envelope-screen">
+        <div class="envelope-wrapper" id="envelope">
+            <div class="envelope-flap"></div>
+            <div class="envelope-pocket"></div>
+            <div class="envelope-seal"><i class="fa-solid fa-heart"></i></div>
+            <div class="letter-preview">
+                <h3>Para Mi Persona Favorita</h3>
+                <p>Haz clic para abrir nuestra historia de amor...</p>
+            </div>
+        </div>
+        <div class="click-hint">✨ Toca el sobre para descubrir la sorpresa ✨</div>
+    </div>
+
+    <!-- 2. REPRODUCTOR DE MÚSICA FLOTANTE -->
+    <div class="music-player-floating" id="music-player">
+        <button class="play-btn" id="play-pause-btn"><i class="fa-solid fa-play"></i></button>
+        <div class="song-info">
+            <span class="song-title">4LIFE ❤️</span>
+            <span class="song-artist">Kris R</span>
+        </div>
+        <div class="sound-waves">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+        </div>
+    </div>
+    <!-- Elemento de Audio -->
+    <audio id="bg-audio" loop preload="auto">
+        <source src="4life.mp3" type="audio/mpeg">
+        Tu navegador no soporta audio.
+    </audio>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <div class="app-container">
+        
+        <!-- HEADER -->
+        <header class="main-header">
+            <h1>Nuestra Historia de Amor</h1>
+            <p>Inseparables, complicados y ridículamente felices ✨</p>
+        </header>
+
+        <!-- 3. CONTADOR DE ANIVERSARIO EN TIEMPO REAL -->
+        <section id="counter-section">
+            <div class="section-header">
+                <h2>Tiempo Juntos</h2>
+                <div class="anniversary-badge" id="anniversary-badge">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Nuestros días 8 juntos</span>
+                </div>
+            </div>
+
+            <div class="timer-grid">
+                <div class="timer-card">
+                    <div class="timer-value" id="months">0</div>
+                    <div class="timer-label">Meses</div>
+                </div>
+                <div class="timer-card">
+                    <div class="timer-value" id="days">0</div>
+                    <div class="timer-label">Días</div>
+                </div>
+                <div class="timer-card">
+                    <div class="timer-value" id="hours">0</div>
+                    <div class="timer-label">Horas</div>
+                </div>
+                <div class="timer-card">
+                    <div class="timer-value" id="minutes">0</div>
+                    <div class="timer-label">Minutos</div>
+                </div>
+                <div class="timer-card">
+                    <div class="timer-value" id="seconds">0</div>
+                    <div class="timer-label">Segundos</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. SECCIÓN ESPECIAL: NUESTRAS PELEAS POR BOBADAS -->
+        <section id="fights-section">
+            <div class="section-header">
+                <h2>Nuestras Peleas por Bobadas 😅</h2>
+                <p>Porque no hay discusión tonta que no termine con un abrazo</p>
+            </div>
+
+            <div class="fights-container">
+                <div class="fights-box">
+                    <h3>🎲 Ruleta de Discusiones</h3>
+                    <div class="roulette-display" id="roulette-result">
+                        ¿Por qué pelearemos hoy? Haz clic abajo para descubrirlo...
+                    </div>
+                    <button class="btn-action" id="btn-roulette">
+                        <i class="fa-solid fa-dice"></i> Generar Bobada
+                    </button>
+                </div>
+
+                <div class="fights-box">
+                    <h3>🤝 Récord de Reconciliaciones</h3>
+                    <div class="counter-badge" id="reconciled-counter">0</div>
+                    <p style="color: var(--soft-blue);">Peleas tontas arregladas con amor y mimos</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. CARTA DE AMOR -->
+        <section id="letter-section">
+            <div class="section-header">
+                <h2>Una Carta Para Ti</h2>
+                <p>Con todo mi corazón</p>
+            </div>
+            <div class="letter-container">
+                <div class="typewriter-text" id="typewriter"></div>
+            </div>
+        </section>
+
+        <!-- 6. GALERÍA INTERACTIVA DE 10 FOTOS -->
+        <section id="gallery-section">
+            <div class="section-header">
+                <h2>Nuestros Momentos</h2>
+                <p>Cada foto guarda un recuerdo inolvidable</p>
+            </div>
+
+            <div class="gallery-grid" id="gallery-grid">
+                <!-- Generado dinámicamente con JS -->
+            </div>
+        </section>
+
+        <!-- 7. CANDADO SECRETO -->
+        <section id="secret-section">
+            <div class="section-header">
+                <h2>Nuestro Mensaje Oculto 🔐</h2>
+                <p>Ingresa la clave secreta para desbloquear la nota final</p>
+            </div>
+
+            <div class="lock-box">
+                <p style="margin-bottom: 15px; color: var(--soft-blue);">Pista: ¿Qué día de cada mes celebramos nuestro aniversario?</p>
+                <div class="lock-input-group">
+                    <input type="password" class="lock-input" id="lock-code" placeholder="00" maxlength="2">
+                    <button class="btn-action" id="btn-unlock"><i class="fa-solid fa-key"></i> Abrir</button>
+                </div>
+
+                <div class="secret-message" id="secret-message">
+                    <h3>¡Lo Descubriste! 💙</h3>
+                    <p>No importa cuántas discusiones tontas tengamos ni cuántas veces digamos bobadas: para mí no hay nadie más en el mundo con quien prefiera compartir mi vida. Te amo infinitamente y celebro cada día 8 a tu lado. ¡Para siempre juntos! 💍✨</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- FOOTER -->
+        <footer>
+            Hecho con mucho <i class="fa-solid fa-heart"></i> para ti | Nuestro Aniversario Días 8
+        </footer>
+    </div>
+
+    <!-- LIGHTBOX MODAL -->
+    <div class="lightbox-modal" id="lightbox">
+        <div class="lightbox-content">
+            <span class="lightbox-close" id="lightbox-close"><i class="fa-solid fa-xmark"></i></span>
+            <button class="lightbox-nav lightbox-prev" id="lightbox-prev"><i class="fa-solid fa-chevron-left"></i></button>
+            <img src="" alt="Foto en pantalla completa" class="lightbox-img" id="lightbox-img">
+            <div class="lightbox-caption" id="lightbox-caption"></div>
+            <button class="lightbox-nav lightbox-next" id="lightbox-next"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT INTEGRADO -->
+    <script>
+        // DATA DE LAS 10 FOTOS Y FRASES
+        const photosData = [
+            { src: 'foto1.jpg', caption: 'Tu carita hermosa haciendo muecas que me enamoran cada día. 😜' },
+            { src: 'foto2.jpg', caption: 'Imposible no sonreír con tus ocurrencias y tu lindura. 💕' },
+            { src: 'foto3.jpg', caption: 'Esa mirada tranquila que se convirtió en mi lugar favorito. ✨' },
+            { src: 'foto4.jpg', caption: 'Tu lado más travieso y tierno, el que siempre me roba un abrazo. 💖' },
+            { src: 'foto5.jpg', caption: 'Los mejores momentos son los que pasamos así, cerquita y en paz. 🛌💤' },
+            { src: 'foto6.jpg', caption: 'Un piquito tuyo y se me olvidan todas las bobadas por las que peleamos. 💋' },
+            { src: 'foto7.jpg', caption: 'Pensando en ti a cada segundo... ¡qué bonita eres, mi amor! 🥰' },
+            { src: 'foto8.jpg', caption: 'Juntos en nuestros días especiales, siempre con una sonrisa. 💐' },
+            { src: 'foto9.jpg', caption: 'Tu abrazo es el único lugar donde todo cobra sentido. 💙' },
+            { src: 'foto10.jpg', caption: 'Celebrando la vida, nuestro amor y cada día 8 juntos. 🎉🎈' }
+        ];
+
+        // FRASE PARA CARTA DE AMOR
+        const letterContent = `Desde el primer 8 de marzo entendí que nuestra historia iba a ser todo menos ordinaria. 
+
+Amo todo de nosotros: la complicidad, las risas espontáneas, la forma en que nos miramos y, sí, incluso nuestras peleas tontas por bobadas sin sentido. Porque al final del día, no importa quién tenía la razón o por qué empezamos a discutir, siempre terminamos buscándonos y queriéndonos más.
+
+Gracias por ser mi compañía, mi refugio y mi persona favorita. Prometo seguir celebrando cada día 8 contigo por el resto de mi vida. ❤️`;
+
+        // LISTA DE BOBOADAS PARA LA RULETA
+        const sillyFights = [
+            "¿Quién elige qué película ver en Netflix?",
+            "Pelear por ver quién quiere más al otro.",
+            "¿Quién manda el último mensaje antes de dormir?",
+            "Por no saber qué comer hoy.",
+            "Porque te burlaste de mí cuando me equivoqué hablando.",
+            "Por ver quién se demora más arreglándose.",
+            "Porque no te diste cuenta de mi cambio de look.",
+            "Por quedarnos dormidos en mitad de la llamada."
+        ];
+
+        // --- 1. SOBRE Y BIENVENIDA ---
+        const envelope = document.getElementById('envelope');
+        const envelopeScreen = document.getElementById('envelope-screen');
+        const bgAudio = document.getElementById('bg-audio');
+        const musicPlayer = document.getElementById('music-player');
+        const playBtn = document.getElementById('play-pause-btn');
+
+        envelope.addEventListener('click', () => {
+            envelope.classList.add('open');
+            setTimeout(() => {
+                envelopeScreen.classList.add('hidden');
+                startTypewriter();
+                startAudio();
+            }, 1200);
+        });
+
+        function startAudio() {
+            bgAudio.play().then(() => {
+                musicPlayer.classList.add('playing');
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            }).catch(e => console.log("Autoplay bloqueado:", e));
+        }
+
+        playBtn.addEventListener('click', () => {
+            if (bgAudio.paused) {
+                bgAudio.play();
+                musicPlayer.classList.add('playing');
+                playBtn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+            } else {
+                bgAudio.pause();
+                musicPlayer.classList.remove('playing');
+                playBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+            }
+        });
+
+        // --- 3. CONTADOR DE ANIVERSARIO ---
+        function updateAnniversaryCounter() {
+            const startDate = new Date('2024-03-08T00:00:00');
+            const now = new Date();
+
+            let months = (now.getFullYear() - startDate.getFullYear()) * 12 + (now.getMonth() - startDate.getMonth());
+            let tempDate = new Date(startDate);
+            tempDate.setMonth(tempDate.getMonth() + months);
+
+            if (now < tempDate) {
+                months--;
+                tempDate = new Date(startDate);
+                tempDate.setMonth(tempDate.getMonth() + months);
+            }
+
+            const diffTime = Math.abs(now - tempDate);
+            const days = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diffTime / (1000 * 60 * 60)) % 24);
+            const minutes = Math.floor((diffTime / (1000 * 60)) % 60);
+            const seconds = Math.floor((diffTime / 1000) % 60);
+
+            document.getElementById('months').innerText = months;
+            document.getElementById('days').innerText = days;
+            document.getElementById('hours').innerText = hours;
+            document.getElementById('minutes').innerText = minutes;
+            document.getElementById('seconds').innerText = seconds;
+
+            // Insignia Día 8
+            const badge = document.getElementById('anniversary-badge');
+            if (now.getDate() === 8) {
+                badge.style.background = 'rgba(0, 245, 212, 0.4)';
+                badge.innerHTML = '<i class="fa-solid fa-star"></i> ¡HOY ES NUESTRO DÍA 8!';
+            }
+        }
+
+        setInterval(updateAnniversaryCounter, 1000);
+        updateAnniversaryCounter();
+
+        // --- 4. RULETA Y CONTADOR DE PELEAS ---
+        const btnRoulette = document.getElementById('btn-roulette');
+        const rouletteResult = document.getElementById('roulette-result');
+
+        btnRoulette.addEventListener('click', () => {
+            btnRoulette.disabled = true;
+            let counter = 0;
+            const interval = setInterval(() => {
+                const randomText = sillyFights[Math.floor(Math.random() * sillyFights.length)];
+                rouletteResult.innerText = randomText;
+                counter++;
+                if (counter > 12) {
+                    clearInterval(interval);
+                    btnRoulette.disabled = false;
+                }
+            }, 100);
+        });
+
+        // Contador animado 999+
+        let countReconciled = 0;
+        const reconciledElem = document.getElementById('reconciled-counter');
+        function animateCounter() {
+            if (countReconciled < 999) {
+                countReconciled += 15;
+                reconciledElem.innerText = countReconciled;
+                setTimeout(animateCounter, 20);
+            } else {
+                reconciledElem.innerText = '999+';
+            }
+        }
+        setTimeout(animateCounter, 1500);
+
+        // --- 5. MÁQUINA DE ESCRIBIR ---
+        let i = 0;
+        function startTypewriter() {
+            const typewriter = document.getElementById('typewriter');
+            if (i < letterContent.length) {
+                typewriter.innerHTML += letterContent.charAt(i);
+                i++;
+                setTimeout(startTypewriter, 30);
+            }
+        }
+
+        // --- 6. RENDER DE GALERÍA Y LIGHTBOX ---
+        const galleryGrid = document.getElementById('gallery-grid');
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        const lightboxCaption = document.getElementById('lightbox-caption');
+        let currentPhotoIndex = 0;
+
+        photosData.forEach((photo, index) => {
+            const card = document.createElement('div');
+            card.className = 'polaroid-card';
+            card.innerHTML = `
+                <div class="polaroid-img-wrapper">
+                    <img src="${photo.src}" alt="Foto ${index + 1}" onerror="this.src='https://via.placeholder.com/400x400/0d1b3e/00f5d4?text=Foto+${index + 1}'">
+                </div>
+                <div class="polaroid-caption">${photo.caption}</div>
+            `;
+            card.addEventListener('click', () => openLightbox(index));
+            galleryGrid.appendChild(card);
+        });
+
+        function openLightbox(index) {
+            currentPhotoIndex = index;
+            updateLightbox();
+            lightbox.classList.add('active');
+        }
+
+        function updateLightbox() {
+            const photo = photosData[currentPhotoIndex];
+            lightboxImg.src = photo.src;
+            lightboxImg.onerror = function() {
+                this.src = `https://via.placeholder.com/600x600/0d1b3e/00f5d4?text=Foto+${currentPhotoIndex + 1}`;
+            };
+            lightboxCaption.innerText = photo.caption;
+        }
+
+        document.getElementById('lightbox-close').addEventListener('click', () => {
+            lightbox.classList.remove('active');
+        });
+
+        document.getElementById('lightbox-prev').addEventListener('click', () => {
+            currentPhotoIndex = (currentPhotoIndex - 1 + photosData.length) % photosData.length;
+            updateLightbox();
+        });
+
+        document.getElementById('lightbox-next').addEventListener('click', () => {
+            currentPhotoIndex = (currentPhotoIndex + 1) % photosData.length;
+            updateLightbox();
+        });
+
+        // --- 7. CANDADO SECRETO ---
+        const btnUnlock = document.getElementById('btn-unlock');
+        const lockCode = document.getElementById('lock-code');
+        const secretMessage = document.getElementById('secret-message');
+
+        btnUnlock.addEventListener('click', checkCode);
+        lockCode.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') checkCode();
+        });
+
+        function checkCode() {
+            const val = lockCode.value.trim();
+            if (val === '8' || val === '08') {
+                secretMessage.style.display = 'block';
+                createHeartRain();
+            } else {
+                alert('Clave incorrecta 😜 Pista: es el número del día de nuestro aniversario');
+            }
+        }
+
+        function createHeartRain() {
+            for (let k = 0; k < 30; k++) {
+                const heart = document.createElement('div');
+                heart.innerHTML = '💙';
+                heart.style.position = 'fixed';
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.top = '-20px';
+                heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+                heart.style.zIndex = '999999';
+                heart.style.transition = 'all 3s linear';
+                document.body.appendChild(heart);
+
+                setTimeout(() => {
+                    heart.style.top = '100vh';
+                    heart.style.transform = 'rotate(360deg)';
+                    heart.style.opacity = '0';
+                }, 50);
+
+                setTimeout(() => heart.remove(), 3200);
+            }
+        }
+
+        // --- CANVAS PARTÍCULAS BACKGROUND ---
+        const canvas = document.getElementById('canvas-bg');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 3 + 1;
+                this.speedX = Math.random() * 0.6 - 0.3;
+                this.speedY = Math.random() * -0.8 - 0.2;
+                this.opacity = Math.random() * 0.7 + 0.3;
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.y < 0) this.reset();
+            }
+            draw() {
+                ctx.fillStyle = `rgba(0, 245, 212, ${this.opacity})`;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        for (let p = 0; p < 60; p++) {
+            particles.push(new Particle());
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(particle => {
+                particle.update();
+                particle.draw();
+            });
+            requestAnimationFrame(animateCanvas);
+        }
+        animateCanvas();
+    </script>
+</body>
+</html>
